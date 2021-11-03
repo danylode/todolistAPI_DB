@@ -51,7 +51,7 @@ namespace todolistApiEF
         }
 
         public TodoTask GetTask(int taskId){
-            return _context.Tasks.Where(x => x.TaskId == taskId).Single();
+            return _context.Tasks.Where(x => x.TodoTaskId == taskId).Single();
         }
 
         public List<TodoTask> PostTask(TodoTask task){
@@ -65,12 +65,13 @@ namespace todolistApiEF
         }
 
         public TodoTask PatchTask(int taskId, JsonPatchDocument<TodoTask> newTask){
-            newTask.ApplyTo(_context.Tasks.Where(x => x.TaskId == taskId).Single());
+            newTask.ApplyTo(_context.Tasks.Where(x => x.TodoTaskId == taskId).Single());
+            _context.SaveChanges();
             return GetTask(taskId);
         }
 
         public List<TodoTask> DeleteTaskByTaskId(int taskId){
-            var removeTask = _context.Tasks.Where(x => x.TaskId == taskId).Single();
+            var removeTask = _context.Tasks.Where(x => x.TodoTaskId == taskId).Single();
             _context.Tasks.Remove(removeTask);
             _context.SaveChanges();
             return GetTasksByTaskListId(removeTask.TaskListId);
