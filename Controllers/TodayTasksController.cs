@@ -19,8 +19,8 @@ namespace todolistApiEF.Controllers
 
         [HttpGet("")]
         public ActionResult<Dictionary<int, List<TodoTask>>> GetTodayTasks(){
-            _service.GetDontDoneTaskAnsTaskLists();
-            return Ok();
+            
+            return Ok(_service.GetTodayTask());
         }
     }
 }

@@ -19,7 +19,7 @@ namespace todolistApiEF
         #region "TaskLists"
         public List<TaskList> GetAllTasksList()
         {
-            return _context.TaskLists.ToList();
+            return _context.TaskLists.Include(x => x.Tasks).ToList();
         }
 
         public TaskList GetTaskListById(int taskListId)
@@ -88,10 +88,12 @@ namespace todolistApiEF
 
         #region "ef task methods"
 
-        public List<TodoTask> GetTodayTask()
+        public Dictionary<string, List<TodoTask>> GetTodayTask()
         {
+            _context.TaskLists.Include(x => x.Tasks).ToList();
+            Dictionary<string, List<TodoTask>> result = new Dictionary<string, List<TodoTask>>();
             
-            return _context.Tasks.Where(x => DateTime.Today >= x.DueDate && x.DueDate <= DateTime.Today).Include("task_lists").ToList();
+            return result;
         }
 
         public List<DashboardTaskCountDTO> GetDontDoneTaskAnsTaskLists()
