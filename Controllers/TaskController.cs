@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.JsonPatch;
 
 namespace todolistApiEF.Controllers
 {
-    [Route("api/{listId}/tasks")]
+    [Route("api/lists/{listId}/tasks")]
     [ApiController]
     public class TaskController : ControllerBase
     {
@@ -32,8 +32,9 @@ namespace todolistApiEF.Controllers
         }
 
         [HttpPost("")]
-        public ActionResult<List<TodoTask>> PostTask(TodoTask newTask)
+        public ActionResult<List<TodoTask>> PostTask(int listId,TodoTask newTask)
         {
+            newTask.TaskListId = listId;
             return Ok(_service.PostTask(newTask));
         }
 

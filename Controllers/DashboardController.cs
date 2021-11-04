@@ -16,6 +16,12 @@ namespace todolistApiEF.Controllers
         {
             this._service = service;
         }
-        
+
+
+        [HttpGet("")]
+        public ActionResult<DashboardDTO> GetDashboard(){
+            var result = _service.GetDontDoneTaskAnsTaskLists();
+            return new DashboardDTO() {TaskCount = result.Count, Lists = result};
+        }
     }
 }
