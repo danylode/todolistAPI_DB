@@ -19,10 +19,9 @@ namespace todolistApiEF.Controllers
 
 
         [HttpGet("")]
-        public ActionResult<DashboardDTO> GetDashboard()
+        public ActionResult<List<DashboardTaskCountDTO>> GetDashboard()
         {
-            var result = _service.GetDashboard();
-            return new DashboardDTO() { TaskCount = result.Count, Lists = result };
+            return _service.GetDashboard();
         }
 
         [HttpGet("npgsql")]

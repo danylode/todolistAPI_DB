@@ -24,7 +24,7 @@ namespace todolistApiEF.Controllers
         public ActionResult<List<ReturnTaskDTO>> GetTasksByTaskListId(int listId, bool all = false)
         {
             
-            return Ok(all == true? _service.GetTasksByTaskListId(listId): _service.GetTasksByTaskListId(listId).Where(x => x.Done == true).ToList());
+            return Ok(all == false? _service.GetTasksByTaskListId(listId): _service.GetTasksByTaskListId(listId).Where(x => x.Done == true).ToList());
         }
 
         [HttpGet("{taskId}")]

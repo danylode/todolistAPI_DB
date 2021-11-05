@@ -146,6 +146,13 @@ namespace todolistApiEF
                 Title = y.Title,
                 TaskCount = x.Tasks.Count()
             }).ToList();
+
+            /*var result = _context.TaskLists.Join(_context.Tasks.Where(x => x.Done == false), x => x.TaskListId, y => y.TaskListId, (x, y) => new DashboardTaskCountDTO
+            {
+                ListId = x.TaskListId,
+                Title = y.Title,
+                TaskCount = x.Tasks.Count()
+            }).ToList();*/
             return result;
         }
 
