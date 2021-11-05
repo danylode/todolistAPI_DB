@@ -5,6 +5,7 @@ using todolistApiEF.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using todolistApiEF.Models.DTO;
+using Npgsql;
 
 namespace todolistApiEF
 {
@@ -137,7 +138,7 @@ namespace todolistApiEF
             return tasks;
         }
 
-        public List<DashboardTaskCountDTO> GetDontDoneTaskAnsTaskLists()
+        public List<DashboardTaskCountDTO> GetDashboard()
         {
             var result = _context.TaskLists.Join(_context.Tasks.Where(x => x.Done == false), x => x.TaskListId, y => y.TaskListId, (x, y) => new DashboardTaskCountDTO
             {
@@ -145,6 +146,34 @@ namespace todolistApiEF
                 Title = y.Title,
                 TaskCount = x.Tasks.Count()
             }).ToList();
+            return result;
+        }
+
+        public List<DashboardTaskCountDTO> GetDashboardBySql()
+        {
+            string sqlRequest = "SELECT * FROM task_lists RIGHT JOIN (SELECT task_list_id, COUNT(done) FROM tasks WHERE done = false GROUP BY task_list_id) AS dons ON task_lists.task_list_id = dons.task_list_id";
+
+            List<DashboardTaskCountDTO> result = new List<DashboardTaskCountDTO>();
+
+            using (var connection = new NpgsqlConnection("Host=127.0.0.1;Username=todolist_api_app;Password=secret;Database=todolist_api"))
+            {
+                connection.Open();
+
+                using (var command = new NpgsqlCommand(sqlRequest, connection))
+                {
+                    var reader = command.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        result.Add(new DashboardTaskCountDTO()
+                        {
+                            ListId = reader.GetInt16(0),
+                            Title = reader.GetString(1),
+                            TaskCount = reader.GetInt16(3)
+                        });
+                    }
+                }
+            }
             return result;
         }
 
