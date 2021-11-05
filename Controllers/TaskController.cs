@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using todolistApiEF.Models;
 using System.Text.Json;
 using Microsoft.AspNetCore.JsonPatch;
+using todolistApiEF.Models.DTO;
 
 namespace todolistApiEF.Controllers
 {
@@ -20,39 +21,39 @@ namespace todolistApiEF.Controllers
         }
 
         [HttpGet("")]
-        public ActionResult<List<TodoTask>> GetTasksByTaskListId(int listId)
+        public ActionResult<List<ReturnTaskDTO>> GetTasksByTaskListId(int listId, bool all = false)
         {
-            return Ok(_service.GetTasksByTaskListId(listId));
+            
+            return Ok(all == true? _service.GetTasksByTaskListId(listId): _service.GetTasksByTaskListId(listId).Where(x => x.Done == true).ToList());
         }
 
         [HttpGet("{taskId}")]
-        public ActionResult<TodoTask> GetTaskById(int taskId)
+        public ActionResult<ReturnTaskDTO> GetTaskById(int taskId)
         {
             return Ok(_service.GetTask(taskId));
         }
 
         [HttpPost("")]
-        public ActionResult<List<TodoTask>> PostTask(int listId,TodoTask newTask)
+        public ActionResult<List<ReturnTaskDTO>> PostTask(int listId,NewTaskDTO newTask)
         {
-            newTask.TaskListId = listId;
-            return Ok(_service.PostTask(newTask));
+            return Ok(_service.PostTask(listId,newTask));
         }
 
         [HttpDelete("{taskId}")]
-        public ActionResult<List<TodoTask>> DeleteTask(int taskId)
+        public ActionResult<List<ReturnTaskDTO>> DeleteTask(int taskId)
         {
-            return _service.DeleteTaskByTaskId(taskId);
+            return Ok(_service.DeleteTaskByTaskId(taskId));
         }
 
         [HttpPut("{taskId}")]
-        public ActionResult<TodoTask> PutTaskById(int taskId, TodoTask newTask){
-            return _service.PutTask(taskId, newTask);
+        public ActionResult<ReturnTaskDTO> PutTaskById(int taskId, TodoTask newTask){
+            return Ok(_service.PutTask(taskId, newTask));
         }
 
         [HttpPatch("{taskId}")]
-        public ActionResult<TodoTask> PatchTaskById(int taskId, JsonPatchDocument<TodoTask> task)
+        public ActionResult<ReturnTaskDTO> PatchTaskById(int taskId, JsonPatchDocument<NewTaskDTO> task)
         {
-            return _service.PatchTask(taskId, task);
+            return Ok(_service.PatchTask(taskId, task));
         }
 
     }

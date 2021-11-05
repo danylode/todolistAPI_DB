@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using todolistApiEF.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
+using todolistApiEF.Models.DTO;
 
 namespace todolistApiEF
 {
@@ -17,52 +18,73 @@ namespace todolistApiEF
             this._context = context;
         }
         #region "TaskLists"
-        public List<TaskList> GetAllTasksList()
+        public List<ReturnTaskListDTO> GetAllTasksList()
         {
-            return _context.TaskLists.Include(x => x.Tasks).ToList();
+            _context.TaskLists.Include(x => x.Tasks);
+            return _context.TaskLists.Select(x => ConvertTaskListToDTO(x)).ToList();
         }
 
-        public TaskList GetTaskListById(int taskListId)
+        public ReturnTaskListDTO GetTaskListById(int taskListId)
         {
-            return _context.TaskLists.Where(x => x.TaskListId == taskListId).Single();
+            return ConvertTaskListToDTO(_context.TaskLists.Where(x => x.TaskListId == taskListId).Single());
         }
 
-        public List<TaskList> CreateTaskList(TaskList newList)
+        public List<ReturnTaskListDTO> CreateTaskList(NewTaskListDTO newList)
         {
-            _context.TaskLists.Add(new TaskList() { Tasks = new List<TodoTask>() });
+            _context.TaskLists.Add(new TaskList()
+            {
+                Title = newList.Title,
+                Tasks = new List<TodoTask>()
+            });
             _context.SaveChanges();
             return GetAllTasksList();
         }
 
-        public List<TaskList> DeleteTaskList(int taskListId)
+        public List<ReturnTaskListDTO> DeleteTaskList(int taskListId)
         {
             _context.TaskLists.Remove(_context.TaskLists.Where(x => x.TaskListId == taskListId).Single());
             _context.SaveChanges();
             return GetAllTasksList();
         }
+
+        public static ReturnTaskListDTO ConvertTaskListToDTO(TaskList taskList)
+        {
+            return new ReturnTaskListDTO()
+            {
+                ListId = taskList.TaskListId,
+                Title = taskList.Title
+            };
+        }
         #endregion
 
         #region "Tasks"
-        public List<TodoTask> GetAllTasks()
+        public List<ReturnTaskDTO> GetAllTasks()
         {
-            return _context.Tasks.ToList();
+            return _context.Tasks.Include(x => x.TaskList).Select(x => ConvertTaskToDTO(x)).ToList();
         }
 
-        public List<TodoTask> GetTasksByTaskListId(int listId)
+        public List<ReturnTaskDTO> GetTasksByTaskListId(int listId)
         {
-            return _context.Tasks.Where(x => x.TaskListId == listId).ToList();
+            return _context.Tasks.Where(x => x.TaskListId == listId).Select(x => ConvertTaskToDTO(x)).ToList();
         }
 
-        public TodoTask GetTask(int taskId)
+        public ReturnTaskDTO GetTask(int taskId)
         {
-            return _context.Tasks.Where(x => x.TodoTaskId == taskId).Single();
+            return ConvertTaskToDTO(_context.Tasks.Where(x => x.TodoTaskId == taskId).Single());
         }
 
-        public List<TodoTask> PostTask(TodoTask task)
+        public List<ReturnTaskDTO> PostTask(int listId, NewTaskDTO task)
         {
-            _context.Tasks.Add(task);
+            _context.Tasks.Add(new TodoTask
+            {
+                Title = task.Title,
+                Description = task.Description,
+                DueDate = task.DueDate,
+                Done = task.Done,
+                TaskList = _context.TaskLists.Where(x => x.TaskListId == listId).Single()
+            });
             _context.SaveChanges();
-            return GetTasksByTaskListId(task.TaskListId);
+            return GetTasksByTaskListId(listId);
         }
 
         public TodoTask PutTask(int taskId, TodoTask newTask)
@@ -70,38 +92,61 @@ namespace todolistApiEF
             return new TodoTask();
         }
 
-        public TodoTask PatchTask(int taskId, JsonPatchDocument<TodoTask> newTask)
+        public ReturnTaskDTO PatchTask(int taskId, JsonPatchDocument<NewTaskDTO> newTask)
         {
-            newTask.ApplyTo(_context.Tasks.Where(x => x.TodoTaskId == taskId).Single());
             _context.SaveChanges();
             return GetTask(taskId);
         }
 
-        public List<TodoTask> DeleteTaskByTaskId(int taskId)
+        public List<ReturnTaskDTO> DeleteTaskByTaskId(int taskId)
         {
             var removeTask = _context.Tasks.Where(x => x.TodoTaskId == taskId).Single();
             _context.Tasks.Remove(removeTask);
             _context.SaveChanges();
             return GetTasksByTaskListId(removeTask.TaskListId);
         }
+
+        public static ReturnTaskDTO ConvertTaskToDTO(TodoTask x)
+        {
+            return new ReturnTaskDTO()
+            {
+                TaskListId = x.TaskListId,
+                TaskId = x.TodoTaskId,
+                Title = x.Title,
+                Description = x.Description,
+                DueDate = x.DueDate,
+                Done = x.Done
+            };
+        }
         #endregion
 
         #region "ef task methods"
 
-        public Dictionary<string, List<TodoTask>> GetTodayTask()
+        public List<TodayTaskDTO> GetTodayTask()
         {
-            _context.TaskLists.Include(x => x.Tasks).ToList();
-            Dictionary<string, List<TodoTask>> result = new Dictionary<string, List<TodoTask>>();
-            
-            return result;
+            var tasks = _context.Tasks.Include(x => x.TaskList).Where(x => DateTime.Equals(DateTime.Today.Date, x.DueDate.Value.Date)).Select(x => new TodayTaskDTO
+            {
+                TaskList = ConvertTaskListToDTO(x.TaskList),
+                TaskId = x.TodoTaskId,
+                Title = x.Title,
+                Description = x.Description,
+                DueDate = x.DueDate,
+                Done = x.Done
+
+            }).ToList();
+            return tasks;
         }
 
         public List<DashboardTaskCountDTO> GetDontDoneTaskAnsTaskLists()
         {
-            var result = _context.TaskLists.Join(_context.Tasks.Where(x => x.Done == false), x => x.TaskListId, y => y.TaskListId, (x, y) => new DashboardTaskCountDTO { ListId = x.TaskListId, Title = y.Title, TaskCount = x.Tasks.Count() }).ToList();
+            var result = _context.TaskLists.Join(_context.Tasks.Where(x => x.Done == false), x => x.TaskListId, y => y.TaskListId, (x, y) => new DashboardTaskCountDTO
+            {
+                ListId = x.TaskListId,
+                Title = y.Title,
+                TaskCount = x.Tasks.Count()
+            }).ToList();
             return result;
         }
-
 
         #endregion
     }

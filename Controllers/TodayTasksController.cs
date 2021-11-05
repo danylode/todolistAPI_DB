@@ -18,7 +18,7 @@ namespace todolistApiEF.Controllers
         }
 
         [HttpGet("")]
-        public ActionResult<Dictionary<int, List<TodoTask>>> GetTodayTasks(){
+        public ActionResult<List<TodayTaskDTO>> GetTodayTasks(){
             
             return Ok(_service.GetTodayTask());
         }

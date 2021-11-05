@@ -76,12 +76,14 @@ namespace todolistApiEF.Migrations
 
             modelBuilder.Entity("todolistApiEF.Models.TodoTask", b =>
                 {
-                    b.HasOne("todolistApiEF.Models.TaskList", null)
+                    b.HasOne("todolistApiEF.Models.TaskList", "TaskList")
                         .WithMany("Tasks")
                         .HasForeignKey("TaskListId")
                         .HasConstraintName("fk_tasks_task_lists_task_list_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("TaskList");
                 });
 
             modelBuilder.Entity("todolistApiEF.Models.TaskList", b =>
