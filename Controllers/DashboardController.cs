@@ -19,13 +19,13 @@ namespace todolistApiEF.Controllers
 
 
         [HttpGet("")]
-        public ActionResult<List<DashboardTaskCountDTO>> GetDashboard()
+        public ActionResult<List<DashboardListDTO>> GetDashboard()
         {
             return _service.GetDashboard();
         }
 
         [HttpGet("npgsql")]
-        public ActionResult<List<DashboardTaskCountDTO>> GetDashboardBySql(){
+        public ActionResult<List<DashboardListDTO>> GetDashboardBySql(){
             return _service.GetDashboardBySql();
         }
 

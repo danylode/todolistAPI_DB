@@ -93,8 +93,9 @@ namespace todolistApiEF
             return new TodoTask();
         }
 
-        public ReturnTaskDTO PatchTask(int taskId, JsonPatchDocument<NewTaskDTO> newTask)
+        public ReturnTaskDTO PatchTask(int taskId, JsonPatchDocument<TodoTask> newTask)
         {
+            newTask.ApplyTo(_context.Tasks.Where(x => x.TodoTaskId == taskId).Single());
             _context.SaveChanges();
             return GetTask(taskId);
         }
@@ -113,10 +114,10 @@ namespace todolistApiEF
             {
                 TaskListId = x.TaskListId,
                 TaskId = x.TodoTaskId,
-                Title = x.Title,
-                Description = x.Description,
-                DueDate = x.DueDate,
-                Done = x.Done
+                TaskName = x.Title,
+                TaskDescription = x.Description,
+                TaskDate = x.DueDate,
+                TaskDone = x.Done
             };
         }
         #endregion
@@ -138,29 +139,24 @@ namespace todolistApiEF
             return tasks;
         }
 
-        public List<DashboardTaskCountDTO> GetDashboard()
+        public List<DashboardListDTO> GetDashboard()
         {
-            var result = _context.TaskLists.Join(_context.Tasks.Where(x => x.Done == false), x => x.TaskListId, y => y.TaskListId, (x, y) => new DashboardTaskCountDTO
-            {
-                ListId = x.TaskListId,
-                Title = y.Title,
-                TaskCount = x.Tasks.Count()
-            }).ToList();
-
+            var listInfo = _context.Tasks.Where(x => x.Done == false);
+            
             /*var result = _context.TaskLists.Join(_context.Tasks.Where(x => x.Done == false), x => x.TaskListId, y => y.TaskListId, (x, y) => new DashboardTaskCountDTO
             {
                 ListId = x.TaskListId,
                 Title = y.Title,
                 TaskCount = x.Tasks.Count()
-            }).ToList();*/
-            return result;
+            }).ToList();*/ 
+            return null;
         }
 
-        public List<DashboardTaskCountDTO> GetDashboardBySql()
+        public List<DashboardListDTO> GetDashboardBySql()
         {
             string sqlRequest = "SELECT * FROM task_lists RIGHT JOIN (SELECT task_list_id, COUNT(done) FROM tasks WHERE done = false GROUP BY task_list_id) AS dons ON task_lists.task_list_id = dons.task_list_id";
 
-            List<DashboardTaskCountDTO> result = new List<DashboardTaskCountDTO>();
+            List<DashboardListDTO> result = new List<DashboardListDTO>();
 
             using (var connection = new NpgsqlConnection("Host=127.0.0.1;Username=todolist_api_app;Password=secret;Database=todolist_api"))
             {
@@ -172,11 +168,11 @@ namespace todolistApiEF
 
                     while (reader.Read())
                     {
-                        result.Add(new DashboardTaskCountDTO()
+                        result.Add(new DashboardListDTO()
                         {
                             ListId = reader.GetInt16(0),
                             Title = reader.GetString(1),
-                            TaskCount = reader.GetInt16(3)
+
                         });
                     }
                 }

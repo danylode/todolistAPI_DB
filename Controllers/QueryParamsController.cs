@@ -10,21 +10,21 @@ using todolistApiEF.Models.DTO;
 
 namespace todolistApiEF.Controllers
 {
-    [Route("api/lists/{listId}/tasks")]
+    [Route("api/tasks")]
     [ApiController]
-    public class TaskController : ControllerBase
+    public class QueryParamsController : ControllerBase
     {
         private TodoListService _service;
-        public TaskController(TodoListService service)
+        public QueryParamsController(TodoListService service)
         {
             this._service = service;
         }
 
-        [HttpGet("")]
+        [HttpGet]
         public ActionResult<List<ReturnTaskDTO>> GetTasksByTaskListId(int listId, bool all = false)
         {
             
-            return Ok(all == false? _service.GetTasksByTaskListId(listId): _service.GetTasksByTaskListId(listId).Where(x => x.TaskDone == true).ToList());
+            return Ok(all == true? _service.GetTasksByTaskListId(listId): _service.GetTasksByTaskListId(listId).Where(x => x.TaskDone == true).ToList());
         }
 
         [HttpGet("{taskId}")]
@@ -33,7 +33,7 @@ namespace todolistApiEF.Controllers
             return Ok(_service.GetTask(taskId));
         }
 
-        [HttpPost("")]
+        [HttpPost]
         public ActionResult<List<ReturnTaskDTO>> PostTask(int listId,NewTaskDTO newTask)
         {
             return Ok(_service.PostTask(listId,newTask));
@@ -51,8 +51,9 @@ namespace todolistApiEF.Controllers
         }
 
         [HttpPatch("{taskId}")]
-        public ActionResult<ReturnTaskDTO> PatchTaskById(int taskId,[FromBody] JsonPatchDocument<TodoTask> task)
+        public ActionResult<ReturnTaskDTO> PatchTaskById(int taskId, JsonPatchDocument<TodoTask> task)
         {
+            Console.WriteLine(task.ToString() + "\n\n\n\n\n\n\n\n\n\n\n");
             return Ok(_service.PatchTask(taskId, task));
         }
 

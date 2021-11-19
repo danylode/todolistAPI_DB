@@ -14,6 +14,7 @@ using Microsoft.OpenApi.Models;
 using todolistApiEF.Models;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace todolistApiEF
 {
     public class Startup
@@ -30,8 +31,7 @@ namespace todolistApiEF
         {
             services.AddDbContext<TodoListContext>(config => config.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")).UseSnakeCaseNamingConvention());
             services.AddScoped<TodoListService>();
-
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "todolistApiEF", Version = "v1" });
@@ -48,11 +48,17 @@ namespace todolistApiEF
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "todolistApiEF v1"));
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseCors(x => x
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
+                .SetIsOriginAllowed(origin => true));
 
             app.UseEndpoints(endpoints =>
             {
