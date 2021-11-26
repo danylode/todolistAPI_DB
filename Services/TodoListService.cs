@@ -93,11 +93,12 @@ namespace todolistApiEF
             return new TodoTask();
         }
 
-        public ReturnTaskDTO PatchTask(int taskId, JsonPatchDocument<TodoTask> newTask)
+        public List<ReturnTaskDTO> PatchTask(int taskId, JsonPatchDocument<TodoTask> newTask)
         {
-            newTask.ApplyTo(_context.Tasks.Where(x => x.TodoTaskId == taskId).Single());
+            var findedTask = _context.Tasks.Where(x => x.TodoTaskId == taskId).Single();
+            newTask.ApplyTo(findedTask);
             _context.SaveChanges();
-            return GetTask(taskId);
+            return GetTasksByTaskListId(findedTask.TaskListId);
         }
 
         public List<ReturnTaskDTO> DeleteTaskByTaskId(int taskId)
@@ -142,19 +143,19 @@ namespace todolistApiEF
         public List<DashboardListDTO> GetDashboard()
         {
             var listInfo = _context.Tasks.Where(x => x.Done == false);
-            
+
             /*var result = _context.TaskLists.Join(_context.Tasks.Where(x => x.Done == false), x => x.TaskListId, y => y.TaskListId, (x, y) => new DashboardTaskCountDTO
             {
                 ListId = x.TaskListId,
                 Title = y.Title,
                 TaskCount = x.Tasks.Count()
-            }).ToList();*/ 
+            }).ToList();*/
             return null;
         }
 
         public List<DashboardListDTO> GetDashboardBySql()
         {
-            string sqlRequest = "SELECT * FROM task_lists RIGHT JOIN (SELECT task_list_id, COUNT(done) FROM tasks WHERE done = false GROUP BY task_list_id) AS dons ON task_lists.task_list_id = dons.task_list_id";
+            string sqlRequest = "SELECT * FROM task_lists LEFT JOIN (SELECT task_list_id, COALESCE(COUNT(done),0) FROM tasks WHERE done = false or tasks is NULL GROUP BY task_list_id) AS dons ON task_lists.task_list_id = dons.task_list_id";
 
             List<DashboardListDTO> result = new List<DashboardListDTO>();
 
@@ -170,6 +171,7 @@ namespace todolistApiEF
                     {
                         result.Add(new DashboardListDTO()
                         {
+                            ListTaskCount = reader.IsDBNull(3) ? 0 : reader.GetInt16(3),
                             ListId = reader.GetInt16(0),
                             Title = reader.GetString(1),
 

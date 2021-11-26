@@ -20,11 +20,17 @@ namespace todolistApiEF.Controllers
             this._service = service;
         }
 
+        [HttpGet("all")]
+        public ActionResult<List<ReturnTaskDTO>> GetAllTasks()
+        {
+            return Ok(_service.GetAllTasks());
+        }
+
         [HttpGet]
         public ActionResult<List<ReturnTaskDTO>> GetTasksByTaskListId(int listId, bool all = false)
         {
-            
-            return Ok(all == true? _service.GetTasksByTaskListId(listId): _service.GetTasksByTaskListId(listId).Where(x => x.TaskDone == true).ToList());
+
+            return Ok(all == true ? _service.GetTasksByTaskListId(listId) : _service.GetTasksByTaskListId(listId).Where(x => x.TaskDone == false).ToList());
         }
 
         [HttpGet("{taskId}")]
@@ -34,9 +40,9 @@ namespace todolistApiEF.Controllers
         }
 
         [HttpPost]
-        public ActionResult<List<ReturnTaskDTO>> PostTask(int listId,NewTaskDTO newTask)
+        public ActionResult<List<ReturnTaskDTO>> PostTask(int listId, NewTaskDTO newTask)
         {
-            return Ok(_service.PostTask(listId,newTask));
+            return Ok(_service.PostTask(listId, newTask));
         }
 
         [HttpDelete("{taskId}")]
@@ -46,14 +52,14 @@ namespace todolistApiEF.Controllers
         }
 
         [HttpPut("{taskId}")]
-        public ActionResult<ReturnTaskDTO> PutTaskById(int taskId, TodoTask newTask){
+        public ActionResult<ReturnTaskDTO> PutTaskById(int taskId, TodoTask newTask)
+        {
             return Ok(_service.PutTask(taskId, newTask));
         }
 
         [HttpPatch("{taskId}")]
-        public ActionResult<ReturnTaskDTO> PatchTaskById(int taskId, JsonPatchDocument<TodoTask> task)
+        public ActionResult<List<ReturnTaskDTO>> PatchTaskById(int taskId, JsonPatchDocument<TodoTask> task)
         {
-            Console.WriteLine(task.ToString() + "\n\n\n\n\n\n\n\n\n\n\n");
             return Ok(_service.PatchTask(taskId, task));
         }
 
